@@ -175,6 +175,13 @@ export default function TrainingPage() {
     setMessages([]);
     conversationHistory.current = [];
     setAnalysis(null);
+    const firstMessage = {
+        id: 'initial-instruction',
+        speaker: 'consumer_agent' as const,
+        text: "I'm ready when you are. You can start the conversation.",
+        isGeneratingAudio: false
+    };
+    setMessages([firstMessage]);
   };
   
   const endSession = async () => {
