@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Clock, List, Hourglass } from "lucide-react";
-import type { Stats } from "@/app/dashboard/page";
+import type { Stats } from "@/types";
 
 interface StatisticsProps {
   stats: Stats;

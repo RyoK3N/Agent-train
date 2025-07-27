@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Bot, User, Play, Pause, Loader2, Mic, Settings } from "lucide-react";
-import type { Message } from "@/app/dashboard/page"; // Using page.tsx Message type for now, can be abstracted
+import type { Message } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ConversationDisplayProps {

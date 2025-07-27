@@ -12,23 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Settings, BarChart3, Bot, User, Play, Pause, Loader2, Mic, Redo } from "lucide-react";
-import { useSessionStore, Session } from "@/hooks/use-session-store";
-
-export interface Message {
-  id: string;
-  speaker: "salesperson_agent" | "consumer_agent" | "user";
-  text: string;
-  isGeneratingAudio: boolean;
-  audioData?: string;
-  tone?: string;
-}
-
-export interface Stats {
-  totalMessages: number;
-  meetingBooked: boolean;
-  conversationLength: number;
-  totalAudioDuration: number;
-}
+import { useSessionStore } from "@/hooks/use-session-store";
+import type { Message, Stats, Session } from "@/types";
 
 const tonePattern = /\*([^*]+)\*/;
 

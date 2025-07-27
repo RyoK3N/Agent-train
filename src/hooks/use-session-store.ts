@@ -1,19 +1,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Message, Stats } from '@/app/dashboard/page';
-import type { AnalyzePerformanceOutput } from '@/ai/flows/analyze-performance-flow';
-
-export interface Session {
-    id: string;
-    name: string;
-    type: 'AI vs AI' | 'Live Training';
-    savedAt: string;
-    messages: Message[];
-    stats?: Stats;
-    analysis?: AnalyzePerformanceOutput | null;
-    transcript: string;
-}
+import type { Session } from '@/types';
 
 interface SessionState {
   sessions: Session[];

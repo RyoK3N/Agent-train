@@ -15,16 +15,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Button } from "@/components/ui/button";
 import { Settings, Bot, User, Play, Pause, Loader2, Mic, Send, Redo, CircleStop } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { useSessionStore, Session } from "@/hooks/use-session-store";
-
-export interface Message {
-  id: string;
-  speaker: "salesperson_agent" | "consumer_agent" | "user";
-  text: string;
-  isGeneratingAudio?: boolean;
-  audioData?: string;
-  tone?: string;
-}
+import { useSessionStore } from "@/hooks/use-session-store";
+import type { Message, Session } from "@/types";
 
 const tonePattern = /\*([^*]+)\*/;
 
