@@ -2,58 +2,25 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Bot, User, Play, Pause, Loader2, Mic, Settings } from "lucide-react";
 import type { Message } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
+import { SpeakerAvatar } from './SpeakerAvatar';
+import { SpeakerName } from './SpeakerName';
 
 interface ConversationDisplayProps {
   messages: Message[];
   isLoading: boolean;
 }
 
-const SpeakerAvatar = ({ speaker }: { speaker: Message["speaker"] }) => {
-    if (speaker === "consumer_agent") {
-        return (
-            <Avatar className="border-2 shadow-lg">
-                <AvatarFallback><User size={20} /></AvatarFallback>
-            </Avatar>
-        );
-    }
-
-    if (speaker === 'user') {
-         return (
-             <Avatar className="border-2 border-blue-500 shadow-lg">
-                <AvatarFallback className="bg-blue-500 text-white"><Mic size={20} /></AvatarFallback>
-            </Avatar>
-        )
-    }
-
-    // salesperson_agent
-    return (
-        <Avatar className="border-2 border-primary shadow-lg">
-            <AvatarFallback className="bg-primary text-primary-foreground"><Bot size={20} /></AvatarFallback>
-        </Avatar>
-    );
-};
-
-const SpeakerName = ({ speaker }: { speaker: Message["speaker"] }) => {
-     if (speaker === "consumer_agent") return <><User size={16}/> Consumer AI</>;
-     if (speaker === 'user') return <><Mic size={16}/> You (Sales Agent)</>
-     return <><Bot size={16}/> Sales AI</>;
-}
-
 export function ConversationDisplay({ messages, isLoading }: ConversationDisplayProps) {
   const [activeAudio, setActiveAudio] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Scroll to bottom when new messages are added
     const viewport = viewportRef.current;
     if (viewport) {
       setTimeout(() => {
@@ -90,9 +57,9 @@ export function ConversationDisplay({ messages, isLoading }: ConversationDisplay
 
   return (
     <div className="w-full max-w-4xl mx-auto h-full flex flex-col">
-        <ScrollArea className="flex-grow w-full p-4" ref={scrollAreaRef} viewportRef={viewportRef}>
+        <ScrollArea className="flex-grow w-full p-4" viewportRef={viewportRef}>
           <AnimatePresence initial={false}>
-            {messages.map((message, index) => (
+            {messages.map((message) => (
               <motion.div
                 key={message.id}
                 layout
@@ -125,7 +92,7 @@ export function ConversationDisplay({ messages, isLoading }: ConversationDisplay
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="mt-3 -ml-2 hover:bg-white/20"
+                      className="mt-3 -ml-2 hover:bg-white/20 text-white/80 hover:text-white"
                       onClick={() => playAudio(message.audioData!, message.id)}
                     >
                       {activeAudio === message.id ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}

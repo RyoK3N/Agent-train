@@ -1,9 +1,11 @@
+
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Lexend } from 'next/font/google';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
+const lexend = Lexend({ subsets: ['latin'], variable: '--font-headline' });
 
 export const metadata: Metadata = {
   title: 'Vocalis AI',
@@ -17,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} font-body antialiased`}>
+      <body className={`${inter.variable} ${lexend.variable} font-body antialiased`}>
         {children}
         <Toaster />
       </body>

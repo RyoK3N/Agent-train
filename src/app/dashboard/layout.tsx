@@ -46,16 +46,15 @@ export default function DashboardLayout({
             <div className="flex items-center gap-2">
               <Logo className="w-8 h-8 text-primary" />
               <h1 className="text-xl font-bold font-headline">Vocalis AI</h1>
-              <SidebarTrigger className="ml-auto hidden md:flex"/>
             </div>
           </SidebarHeader>
-          <SidebarContent className="p-0">
+          <SidebarContent className="p-4">
               <SidebarMenu>
                   <SidebarMenuItem>
                       <SidebarMenuButton asChild isActive={pathname === '/dashboard'}>
                         <Link href="/dashboard">
                           <MessageSquare />
-                          AI vs AI Sim
+                          <span>AI vs AI Sim</span>
                         </Link>
                       </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -63,7 +62,7 @@ export default function DashboardLayout({
                       <SidebarMenuButton asChild isActive={pathname === '/dashboard/training'}>
                         <Link href="/dashboard/training">
                           <MicVocal />
-                          Live Training
+                           <span>Live Training</span>
                         </Link>
                       </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -126,11 +125,14 @@ export default function DashboardLayout({
           </SidebarFooter>
         </Sidebar>
         <div className="flex flex-col w-full">
-            <header className="md:hidden p-4 border-b flex justify-end">
-                <SidebarTrigger/>
+            <header className="p-4 border-b flex items-center justify-between md:justify-end">
+                <SidebarTrigger className="md:hidden"/>
+                <div className="items-center gap-4 hidden md:flex">
+                  <span className="text-sm text-muted-foreground">Welcome Back, User!</span>
+                </div>
             </header>
             <SidebarInset>
-              <main>
+              <main className="bg-muted/30">
                   {children}
               </main>
             </SidebarInset>
