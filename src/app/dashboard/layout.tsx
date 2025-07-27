@@ -42,7 +42,7 @@ export default function DashboardLayout({
         <SidebarContent className="p-0">
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <Link href="/dashboard" legacyBehavior passHref>
+                    <Link href="/dashboard">
                       <SidebarMenuButton asChild isActive={pathname === '/dashboard'}>
                           <MessageSquare />
                           AI vs AI Sim
@@ -50,7 +50,7 @@ export default function DashboardLayout({
                     </Link>
                 </SidebarMenuItem>
                  <SidebarMenuItem>
-                    <Link href="/dashboard/training" legacyBehavior passHref>
+                    <Link href="/dashboard/training">
                       <SidebarMenuButton asChild isActive={pathname === '/dashboard/training'}>
                           <MicVocal />
                           Live Training
@@ -76,9 +76,9 @@ export default function DashboardLayout({
               </Avatar>
               <div className="flex flex-col">
                 <span className="font-semibold">User</span>
-                <span className="text-sm text-muted-foreground">user@example.com</span>
+                <span className="text-muted-foreground">user@example.com</span>
               </div>
-              <Link href="/login" legacyBehavior passHref>
+              <Link href="/login">
                 <Button asChild variant="ghost" size="icon" className="ml-auto">
                   <LogOut className="h-5 w-5"/>
                 </Button>
