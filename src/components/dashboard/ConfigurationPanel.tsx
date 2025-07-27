@@ -31,6 +31,7 @@ export type ConfigurationFormValues = z.infer<typeof formSchema>;
 interface ConfigurationPanelProps {
   onSubmit: (values: ConfigurationFormValues) => void;
   isLoading: boolean;
+  initialQuery: string;
 }
 
 const defaultSalesPrompt = `You are Alex, a top sales professional at Cleverly, a data-driven LinkedIn lead generation agency trusted by 10,000+ B2B companies.
@@ -83,14 +84,14 @@ Example tone usage: *skeptical* Well, I've heard that pitch before...
 📋 EXIT CRITERIA: If salesperson addresses needs and overcomes skepticism, agree to meeting and say 'TERMINATE'`;
 
 
-export function ConfigurationPanel({ onSubmit, isLoading }: ConfigurationPanelProps) {
+export function ConfigurationPanel({ onSubmit, isLoading, initialQuery }: ConfigurationPanelProps) {
   const form = useForm<ConfigurationFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       salesAgentPrompt: defaultSalesPrompt,
       consumerAgentPrompt: defaultConsumerPrompt,
       externalKnowledgeUrl: "",
-      query: "The sales agent (human) will start the conversation. The AI consumer should wait for the user's first message and then respond.",
+      query: initialQuery,
     },
   });
 

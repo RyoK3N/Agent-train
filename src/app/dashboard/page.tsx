@@ -232,7 +232,11 @@ export default function DashboardPage() {
                 <SheetTitle className="font-headline text-2xl">Roleplay Configuration</SheetTitle>
              </SheetHeader>
              <div className="py-4 h-[calc(100vh-80px)] overflow-y-auto pr-6">
-                <ConfigurationPanel onSubmit={handleStartSimulation} isLoading={isLoading} />
+                <ConfigurationPanel 
+                    onSubmit={handleStartSimulation} 
+                    isLoading={isLoading} 
+                    initialQuery="The sales agent AI should start the conversation. The consumer AI should wait for the sales agent's first message and then respond."
+                />
              </div>
           </SheetContent>
         </Sheet>

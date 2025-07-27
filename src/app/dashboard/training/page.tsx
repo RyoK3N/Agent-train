@@ -243,7 +243,11 @@ export default function TrainingPage() {
                 <SheetTitle className="font-headline text-2xl">Training Configuration</SheetTitle>
              </SheetHeader>
              <div className="py-4 h-[calc(100vh-80px)] overflow-y-auto pr-6">
-                <ConfigurationPanel onSubmit={handleStartSession} isLoading={isLoading || isSTTLoading} />
+                <ConfigurationPanel 
+                    onSubmit={handleStartSession} 
+                    isLoading={isLoading || isSTTLoading} 
+                    initialQuery="The sales agent (human) will start the conversation. The AI consumer should wait for the user's first message and then respond."
+                />
              </div>
           </SheetContent>
         </Sheet>
@@ -309,5 +313,3 @@ export default function TrainingPage() {
     </div>
   );
 }
-
-    
