@@ -42,24 +42,20 @@ export default function DashboardLayout({
         <SidebarContent className="p-0">
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <Link href="/dashboard" passHref>
-                      <SidebarMenuButton asChild isActive={pathname === '/dashboard'}>
-                        <a>
-                          <MessageSquare />
-                          AI vs AI Sim
-                        </a>
-                      </SidebarMenuButton>
-                    </Link>
+                    <SidebarMenuButton asChild isActive={pathname === '/dashboard'}>
+                      <Link href="/dashboard">
+                        <MessageSquare />
+                        AI vs AI Sim
+                      </Link>
+                    </SidebarMenuButton>
                 </SidebarMenuItem>
                  <SidebarMenuItem>
-                    <Link href="/dashboard/training" passHref>
-                      <SidebarMenuButton asChild isActive={pathname === '/dashboard/training'}>
-                        <a>
-                          <MicVocal />
-                          Live Training
-                        </a>
-                      </SidebarMenuButton>
-                    </Link>
+                    <SidebarMenuButton asChild isActive={pathname === '/dashboard/training'}>
+                      <Link href="/dashboard/training">
+                        <MicVocal />
+                        Live Training
+                      </Link>
+                    </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
             <SidebarGroup className="mt-4">
