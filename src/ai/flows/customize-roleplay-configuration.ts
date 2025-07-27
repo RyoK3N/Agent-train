@@ -67,6 +67,7 @@ const roleplayPrompt = ai.definePrompt({
   output: {
     schema: CustomizeRoleplayOutputSchema,
   },
+  system: `You must return a JSON object that adheres to the provided schema.`,
   prompt: `You are simulating a conversation between a sales agent and a consumer agent.
 
 Sales Agent System Prompt:
