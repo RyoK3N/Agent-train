@@ -91,6 +91,9 @@ export default function TrainingPage() {
           if (consumerResponseText.includes("TERMINATE")) {
              endSession();
           }
+        } else {
+            // If consumer doesn't respond, maybe the conversation is over or stalled.
+            toast({ title: "Conversation Update", description: "The consumer agent did not provide a response. You can end the session for analysis."})
         }
       } catch (error) {
          console.error("AI turn failed:", error);
@@ -113,15 +116,14 @@ export default function TrainingPage() {
     const startConversation = async () => {
         try {
             const result = await customizeRoleplay({ ...values, query: values.query });
-            if (result.salesAgentResponse) {
-                // In training mode, the first move is by the AI consumer based on the sales agent's intro.
-                const toneMatch = result.salesAgentResponse.match(tonePattern);
+            let initialText = result.consumerAgentResponse || result.salesAgentResponse; // Prefer consumer response to start
+            if (initialText) {
+                const toneMatch = initialText.match(tonePattern);
                 const tone = toneMatch ? toneMatch[1].toLowerCase().trim() : undefined;
-                await processAndAddMessage("consumer_agent", result.salesAgentResponse, 'consumer', tone);
-            } else if (result.consumerAgentResponse) {
-                const toneMatch = result.consumerAgentResponse.match(tonePattern);
-                const tone = toneMatch ? toneMatch[1].toLowerCase().trim() : undefined;
-                await processAndAddMessage("consumer_agent", result.consumerAgentResponse, 'consumer', tone);
+                await processAndAddMessage("consumer_agent", initialText, 'consumer', tone);
+            } else {
+                toast({ title: "Simulation Start Failed", description: "The AI could not generate an opening line.", variant: "destructive" });
+                 setSessionActive(false);
             }
         } catch (error) {
             console.error("Simulation start failed:", error);
@@ -135,7 +137,10 @@ export default function TrainingPage() {
   };
   
   const endSession = async () => {
-    if (!currentConfig) return;
+    if (!currentConfig || conversationHistory.current.length === 0) {
+        toast({ title: "Analysis Skipped", description: "Cannot analyze an empty session.", variant: "destructive"});
+        return;
+    };
     setSessionActive(false);
     setIsAnalyzing(true);
     toast({ title: "Session Ended", description: "Analyzing your performance..." });
@@ -161,6 +166,7 @@ export default function TrainingPage() {
     setAnalysis(null);
     setCurrentConfig(null);
     setIsConfigOpen(true);
+    setUserTranscript("");
   }
 
   return (
@@ -172,7 +178,7 @@ export default function TrainingPage() {
         </Button>
         <Sheet open={isConfigOpen} onOpenChange={setIsConfigOpen}>
           <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="shadow-md rounded-full">
+            <Button variant="outline" size="icon" className="shadow-md rounded-full" disabled={sessionActive}>
               <Settings className="h-5 w-5" />
             </Button>
           </SheetTrigger>
@@ -188,7 +194,7 @@ export default function TrainingPage() {
       </div>
 
       <div className="flex-grow flex flex-col items-center justify-center p-4">
-        <ConversationDisplay messages={messages} isLoading={isLoading} />
+        <ConversationDisplay messages={messages} isLoading={isLoading && messages.length > 0} />
         {analysis && (
             <div className="w-full max-w-4xl mt-4">
                 <PerformanceReview analysis={analysis} isLoading={isAnalyzing}/>
@@ -216,7 +222,7 @@ export default function TrainingPage() {
                             }
                         }}
                     />
-                    <Button onClick={handleUserSubmit} size="icon" className="h-14 w-14 rounded-full shadow-lg flex-shrink-0" disabled={isLoading}>
+                    <Button onClick={handleUserSubmit} size="icon" className="h-14 w-14 rounded-full shadow-lg flex-shrink-0" disabled={isLoading || !userTranscript.trim()}>
                        {isLoading ? <Loader2 className="animate-spin h-7 w-7"/> : <Send className="h-7 w-7"/>}
                     </Button>
                     <Button variant="destructive" className="h-14 rounded-full shadow-lg" onClick={endSession}>
