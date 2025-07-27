@@ -78,11 +78,11 @@ export default function DashboardLayout({
                 <span className="font-semibold">User</span>
                 <span className="text-muted-foreground">user@example.com</span>
               </div>
-              <Link href="/login">
-                <Button asChild variant="ghost" size="icon" className="ml-auto">
-                  <a><LogOut className="h-5 w-5"/></a>
-                </Button>
-              </Link>
+              <Button asChild variant="ghost" size="icon" className="ml-auto">
+                <Link href="/login">
+                  <LogOut className="h-5 w-5"/>
+                </Link>
+              </Button>
            </div>
         </SidebarFooter>
       </Sidebar>
