@@ -7,6 +7,7 @@ import { Statistics } from "@/components/dashboard/Statistics";
 import { customizeRoleplay } from "@/ai/flows/customize-roleplay-configuration";
 import { generateVoiceModulation } from "@/ai/flows/generate-voice-modulation";
 import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export interface Message {
   id: string;
@@ -129,12 +130,18 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div className="lg:col-span-1">
-         <h2 className="text-2xl font-bold font-headline mb-4">Roleplay Configuration</h2>
-        <ConfigurationPanel onSubmit={handleStartSimulation} isLoading={isLoading} />
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="xl:col-span-1">
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-headline text-2xl">Roleplay Configuration</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ConfigurationPanel onSubmit={handleStartSimulation} isLoading={isLoading} />
+          </CardContent>
+        </Card>
       </div>
-      <div className="lg:col-span-2 space-y-8">
+      <div className="xl:col-span-2 space-y-6">
         <ConversationDisplay messages={messages} isLoading={isLoading} />
         <Statistics stats={stats} />
       </div>

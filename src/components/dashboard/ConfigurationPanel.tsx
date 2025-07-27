@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm, type UseFormReturn } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
@@ -103,7 +103,7 @@ export function ConfigurationPanel({ onSubmit, isLoading }: ConfigurationPanelPr
             <FormItem>
               <FormLabel>Simulation Task</FormLabel>
               <FormControl>
-                <Textarea placeholder="Enter the initial task for the agents..." {...field} />
+                <Textarea placeholder="Enter the initial task for the agents..." {...field} rows={3} />
               </FormControl>
               <FormDescription>
                 This is the starting point for the conversation.
@@ -119,7 +119,7 @@ export function ConfigurationPanel({ onSubmit, isLoading }: ConfigurationPanelPr
             <FormItem>
               <FormLabel>Sales Agent Prompt</FormLabel>
               <FormControl>
-                <Textarea className="min-h-[200px]" placeholder="Define the sales agent's personality and goals..." {...field} />
+                <Textarea className="min-h-[150px] font-mono text-xs" placeholder="Define the sales agent's personality and goals..." {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -132,7 +132,7 @@ export function ConfigurationPanel({ onSubmit, isLoading }: ConfigurationPanelPr
             <FormItem>
               <FormLabel>Consumer Agent Prompt</FormLabel>
               <FormControl>
-                <Textarea className="min-h-[200px]" placeholder="Define the consumer's personality and objections..." {...field} />
+                <Textarea className="min-h-[150px] font-mono text-xs" placeholder="Define the consumer's personality and objections..." {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

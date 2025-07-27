@@ -24,11 +24,11 @@ export default function DashboardLayout({
         <SidebarHeader className="p-4 border-b">
           <div className="flex items-center gap-2">
             <Logo className="w-8 h-8 text-primary" />
-            <h1 className="text-2xl font-bold font-headline">Vocalis AI</h1>
+            <h1 className="text-xl font-bold font-headline">Vocalis AI</h1>
             <SidebarTrigger className="ml-auto"/>
           </div>
         </SidebarHeader>
-        <SidebarContent className="flex-grow p-4">
+        <SidebarContent className="flex-grow p-2">
           {/* Content inside sidebar, if any */}
         </SidebarContent>
         <SidebarFooter className="p-4 border-t">
@@ -50,7 +50,7 @@ export default function DashboardLayout({
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="flex items-center p-4 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10">
+        <header className="flex items-center p-4 border-b sticky top-0 bg-background/95 backdrop-blur-sm z-10">
           <SidebarTrigger className="md:hidden" />
           <div className="ml-auto flex items-center gap-2">
             <Button variant="ghost" size="icon">
@@ -64,7 +64,7 @@ export default function DashboardLayout({
             </Button>
           </div>
         </header>
-        <main className="p-4 md:p-8">
+        <main className="p-4 sm:p-6 lg:p-8">
             {children}
         </main>
       </SidebarInset>
