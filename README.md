@@ -120,3 +120,17 @@ Here's a brief overview of the key directories in the project:
 - `src/types/`: TypeScript type definitions used across the application.
 - `public/`: Static assets like images and fonts.
 - `Dockerfile`: Configuration for building the production Docker image.
+# Initialize a new Git repository
+git init -b main
+
+# Add all the files to the staging area
+git add .
+
+# Create your first commit
+git commit -m "Initial commit of Vocalis AI project"
+
+# Add your GitHub repository as the remote origin
+git remote add origin https://github.com/RyoK3N/Agent-train.git
+
+# Push your code to the main branch on GitHub
+git push -u origin main
