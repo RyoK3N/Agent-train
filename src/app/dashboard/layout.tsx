@@ -91,11 +91,12 @@ export default function DashboardLayout({
                        <Button 
                           key={session.id} 
                           variant="ghost" 
+                          asChild
                           className="w-full justify-start text-sm truncate h-8"
-                          // TODO: Add navigation to a session view page
-                          // onClick={() => router.push(`/dashboard/session/${session.id}`)}
                        >
-                         {session.name}
+                         <Link href={`/dashboard/session/${session.id}`}>
+                           {session.name}
+                         </Link>
                        </Button>
                     ))}
                   </div>
