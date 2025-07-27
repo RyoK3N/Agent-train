@@ -85,7 +85,7 @@ export function ConversationDisplay({ messages, isLoading }: ConversationDisplay
                 >
                   <p className="font-bold mb-2 flex items-center gap-2 text-sm">
                     <SpeakerName speaker={message.speaker} />
-                    {message.tone && <span className="text-xs font-normal opacity-80 bg-black/10 px-2 py-0.5 rounded-full capitalize">{message.tone}</span>}
+                    {message.tone && <span className="text-xs font-normal opacity-80 bg-black/20 px-2 py-0.5 rounded-full capitalize">{message.tone}</span>}
                   </p>
                   <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.text}</p>
                   {message.audioData && (
@@ -126,11 +126,12 @@ export function ConversationDisplay({ messages, isLoading }: ConversationDisplay
                  </div>
               </motion.div>
             )}
-
-            {messages.length === 0 && !isLoading && (
-              <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground pt-20">
+             </AnimatePresence>
+        </ScrollArea>
+        {messages.length === 0 && !isLoading && (
+              <div className="flex-grow flex flex-col items-center justify-center text-center text-muted-foreground -mt-16">
                   <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.2, type: 'spring' }}>
-                    <div className="p-8 bg-card/50 rounded-full border shadow-lg mb-6">
+                    <div className="p-8 bg-card/50 rounded-full border-2 border-primary/20 shadow-lg mb-6 shadow-primary/10">
                         <Bot size={64} className="text-primary" />
                     </div>
                   </motion.div>
@@ -139,9 +140,7 @@ export function ConversationDisplay({ messages, isLoading }: ConversationDisplay
                       Welcome! Click the <Settings size={16} className="inline-block mx-1" /> icon to configure your agents and start a new session.
                   </p>
               </div>
-            )}
-            </AnimatePresence>
-        </ScrollArea>
+        )}
     </div>
   );
 }
