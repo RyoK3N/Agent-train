@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { ConfigurationPanel, type ConfigurationFormValues } from "@/components/dashboard/ConfigurationPanel";
 import { ConversationDisplay } from "@/components/dashboard/ConversationDisplay";
 import { PerformanceReview } from "@/components/training/PerformanceReview";
+import { SaveSessionDialog } from "@/components/dashboard/SaveSessionDialog";
 import { customizeRoleplay } from "@/ai/flows/customize-roleplay-configuration";
 import { generateVoiceModulation } from "@/ai/flows/generate-voice-modulation";
 import { analyzePerformance, AnalyzePerformanceOutput } from "@/ai/flows/analyze-performance-flow";
@@ -14,6 +15,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Button } from "@/components/ui/button";
 import { Settings, Bot, User, Play, Pause, Loader2, Mic, Send, Redo, CircleStop } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { useSessionStore, Session } from "@/hooks/use-session-store";
 
 export interface Message {
   id: string;
@@ -42,6 +44,10 @@ export default function TrainingPage() {
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+
+  const addSession = useSessionStore(state => state.addSession);
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+
 
   const processAndAddMessage = async (speaker: "consumer_agent" | "user", rawText: string, idPrefix: string, tone?: string) => {
     if (!rawText) return "";
@@ -171,23 +177,24 @@ export default function TrainingPage() {
     setIsConfigOpen(false);
     setSessionActive(true);
     setCurrentConfig(values);
-    setIsLoading(false); // Don't start loading until user speaks/types
+    setIsLoading(false); 
     setMessages([]);
     conversationHistory.current = [];
     setAnalysis(null);
     const firstMessage = {
         id: 'initial-instruction',
         speaker: 'consumer_agent' as const,
-        text: "I'm ready when you are. You can start the conversation.",
+        text: "I'm ready when you are. You can start the conversation by typing or using the microphone.",
         isGeneratingAudio: false
     };
     setMessages([firstMessage]);
   };
   
   const endSession = async () => {
-    if (!currentConfig || conversationHistory.current.length === 0) {
-        toast({ title: "Analysis Skipped", description: "Cannot analyze an empty session.", variant: "destructive"});
+    if (!currentConfig || conversationHistory.current.length <= 1) { // 1 because of the initial message
+        toast({ title: "Analysis Skipped", description: "Cannot analyze an empty or very short session.", variant: "destructive"});
         setSessionActive(false);
+        setIsSaveDialogOpen(false);
         return;
     };
     setSessionActive(false);
@@ -199,12 +206,28 @@ export default function TrainingPage() {
             salesAgentPrompt: currentConfig.salesAgentPrompt,
         });
         setAnalysis(result);
+        setIsSaveDialogOpen(true);
     } catch(error) {
         console.error("Analysis failed", error);
         toast({ title: "Analysis Failed", description: "Could not analyze the session.", variant: "destructive" });
     } finally {
         setIsAnalyzing(false);
     }
+  }
+
+  const handleSaveSession = (sessionName: string) => {
+    const newSession: Session = {
+      id: `session-${Date.now()}`,
+      name: sessionName,
+      messages,
+      analysis,
+      transcript: conversationHistory.current.join('\n'),
+      savedAt: new Date().toISOString(),
+      type: "Live Training"
+    };
+    addSession(newSession);
+    toast({ title: "Session Saved", description: `Session "${sessionName}" has been saved.`});
+    setIsSaveDialogOpen(false);
   }
 
   const handleReset = () => {
@@ -221,11 +244,20 @@ export default function TrainingPage() {
     setCurrentConfig(null);
     setIsConfigOpen(true);
     setUserTranscript("");
+    setIsSaveDialogOpen(false);
   }
 
-  const isInputDisabled = isLoading || isSTTLoading || isRecording;
+  const isInputDisabled = isLoading || isSTTLoading || isRecording || !sessionActive;
 
   return (
+    <>
+    <SaveSessionDialog 
+      open={isSaveDialogOpen}
+      onOpenChange={setIsSaveDialogOpen}
+      onSave={handleSaveSession}
+      onCancel={() => setIsSaveDialogOpen(false) /* just close dialog, don't reset */}
+      defaultName={`Live Training Session - ${new Date().toLocaleString()}`}
+    />
     <div className="h-screen flex flex-col relative">
        <div className="absolute top-4 right-4 z-20 flex gap-2">
         <Button variant="outline" size="icon" className="shadow-md rounded-full" onClick={handleReset}>
@@ -253,10 +285,10 @@ export default function TrainingPage() {
         </Sheet>
       </div>
 
-      <div className="flex-grow flex flex-col items-center justify-center p-4">
+      <div className="flex-grow flex flex-col items-center justify-center p-4 overflow-y-auto">
         <ConversationDisplay messages={messages} isLoading={(isLoading || isSTTLoading) && messages.length > 0} />
         {analysis && (
-            <div className="w-full max-w-4xl mt-4">
+            <div className="w-full max-w-4xl mt-4 mb-32">
                 <PerformanceReview analysis={analysis} isLoading={isAnalyzing}/>
             </div>
         )}
@@ -271,7 +303,7 @@ export default function TrainingPage() {
                       size="icon"
                       className="h-14 w-14 rounded-full shadow-lg flex-shrink-0"
                       onClick={handleToggleRecording}
-                      disabled={isLoading || isSTTLoading}
+                      disabled={isInputDisabled}
                     >
                         {isSTTLoading ? (
                             <Loader2 className="animate-spin h-7 w-7" />
@@ -311,5 +343,6 @@ export default function TrainingPage() {
           </div>
        </div>
     </div>
+    </>
   );
 }

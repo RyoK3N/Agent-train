@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Bot, User, Play, Pause, Loader2, Mic, Settings } from "lucide-react";
-import type { Message } from "@/app/dashboard/page";
+import type { Message } from "@/app/dashboard/page"; // Using page.tsx Message type for now, can be abstracted
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ConversationDisplayProps {
@@ -50,17 +50,16 @@ export function ConversationDisplay({ messages, isLoading }: ConversationDisplay
   const [activeAudio, setActiveAudio] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Enhanced scroll-to-bottom logic
-    setTimeout(() => {
-        if (scrollAreaRef.current) {
-            const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
-            if (viewport) {
-                viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
-            }
-        }
-    }, 100);
+    // Scroll to bottom when new messages are added
+    const viewport = viewportRef.current;
+    if (viewport) {
+      setTimeout(() => {
+        viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+      }, 100);
+    }
   }, [messages]);
   
   const playAudio = (audioData: string, messageId: string) => {
@@ -91,7 +90,7 @@ export function ConversationDisplay({ messages, isLoading }: ConversationDisplay
 
   return (
     <div className="w-full max-w-4xl mx-auto h-full flex flex-col">
-        <ScrollArea className="h-[calc(80vh)] w-full p-4" ref={scrollAreaRef}>
+        <ScrollArea className="flex-grow w-full p-4" ref={scrollAreaRef} viewportRef={viewportRef}>
           <AnimatePresence initial={false}>
             {messages.map((message, index) => (
               <motion.div
@@ -144,7 +143,7 @@ export function ConversationDisplay({ messages, isLoading }: ConversationDisplay
               </motion.div>
             ))}
 
-            {isLoading && !messages.some(m => m.speaker === 'user' && m.text) && (
+            {isLoading && messages.length > 1 && (
               <motion.div
                 layout
                 initial={{ opacity: 0, y: 10 }}
