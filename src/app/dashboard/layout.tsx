@@ -1,4 +1,6 @@
 
+"use client";
+
 import {
   SidebarProvider,
   Sidebar,
@@ -18,13 +20,15 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/icons/Logo";
 import { LogOut, MessageSquare, History, MicVocal } from "lucide-react";
 import Link from 'next/link';
-import { Separator } from "@/components/ui/separator";
+import { usePathname } from 'next/navigation';
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
   return (
     <SidebarProvider>
       <Sidebar>
@@ -38,16 +42,20 @@ export default function DashboardLayout({
         <SidebarContent className="p-0">
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton href="/dashboard">
-                        <MessageSquare />
-                        AI vs AI Sim
-                    </SidebarMenuButton>
+                    <Link href="/dashboard" passHref legacyBehavior>
+                      <SidebarMenuButton asChild isActive={pathname === '/dashboard'}>
+                          <MessageSquare />
+                          AI vs AI Sim
+                      </SidebarMenuButton>
+                    </Link>
                 </SidebarMenuItem>
                  <SidebarMenuItem>
-                    <SidebarMenuButton href="/dashboard/training">
-                        <MicVocal />
-                        Live Training
-                    </SidebarMenuButton>
+                    <Link href="/dashboard/training" passHref legacyBehavior>
+                      <SidebarMenuButton asChild isActive={pathname === '/dashboard/training'}>
+                          <MicVocal />
+                          Live Training
+                      </SidebarMenuButton>
+                    </Link>
                 </SidebarMenuItem>
             </SidebarMenu>
             <SidebarGroup className="mt-4">
