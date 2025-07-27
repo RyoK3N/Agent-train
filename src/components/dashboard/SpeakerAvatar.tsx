@@ -6,7 +6,7 @@ import type { Message } from "@/types";
 export const SpeakerAvatar = ({ speaker }: { speaker: Message["speaker"] }) => {
     if (speaker === "consumer_agent") {
         return (
-            <Avatar className="border-2 border-muted shadow-lg">
+            <Avatar className="border-2 border-secondary shadow-lg">
                 <AvatarFallback><User size={20} /></AvatarFallback>
             </Avatar>
         );
@@ -22,8 +22,8 @@ export const SpeakerAvatar = ({ speaker }: { speaker: Message["speaker"] }) => {
 
     // salesperson_agent
     return (
-        <Avatar className="border-2 border-primary/50 shadow-lg">
-            <AvatarFallback className="bg-primary/10 text-primary"><Bot size={20} /></AvatarFallback>
+        <Avatar className="border-2 border-cyan-500/50 shadow-lg">
+            <AvatarFallback className="bg-secondary/50 text-cyan-400"><Bot size={20} /></AvatarFallback>
         </Avatar>
     );
 };

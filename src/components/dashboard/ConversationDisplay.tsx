@@ -77,7 +77,7 @@ export function ConversationDisplay({ messages, isLoading }: ConversationDisplay
                   className={cn(
                     "rounded-xl p-4 max-w-xl shadow-lg transition-all duration-300",
                     message.speaker === "salesperson_agent"
-                      ? "bg-gradient-to-br from-primary to-blue-600 text-primary-foreground rounded-br-none"
+                      ? "bg-secondary text-secondary-foreground rounded-br-none"
                       : isHumanMessage(message.speaker)
                       ? "bg-gradient-to-br from-blue-500 to-cyan-500 text-primary-foreground rounded-bl-none"
                       : "bg-card text-card-foreground border rounded-bl-none"
@@ -129,13 +129,13 @@ export function ConversationDisplay({ messages, isLoading }: ConversationDisplay
              </AnimatePresence>
         </ScrollArea>
         {messages.length === 0 && !isLoading && (
-              <div className="flex-grow flex flex-col items-center justify-center text-center text-muted-foreground -mt-16">
+              <div className="flex-grow flex flex-col items-center justify-center text-center text-muted-foreground">
                   <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.2, type: 'spring' }}>
-                    <div className="p-8 bg-card/50 rounded-full border-2 border-primary/20 shadow-lg mb-6 shadow-primary/10">
+                    <div className="p-8 bg-secondary/50 rounded-full border-2 border-primary/20 shadow-lg mb-6 shadow-primary/10">
                         <Bot size={64} className="text-primary" />
                     </div>
                   </motion.div>
-                  <h3 className="text-2xl font-bold font-headline mb-2">Vocalis AI Simulation</h3>
+                  <h3 className="text-2xl font-bold font-headline mb-2 text-primary-foreground">Vocalis AI Simulation</h3>
                   <p className="text-md max-w-md">
                       Welcome! Click the <Settings size={16} className="inline-block mx-1" /> icon to configure your agents and start a new session.
                   </p>
