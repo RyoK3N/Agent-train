@@ -1,3 +1,4 @@
+
 // src/ai/flows/customize-roleplay-configuration.ts
 'use server';
 
@@ -31,10 +32,10 @@ const CustomizeRoleplayInputSchema = z.object({
 export type CustomizeRoleplayInput = z.infer<typeof CustomizeRoleplayInputSchema>;
 
 const CustomizeRoleplayOutputSchema = z.object({
-  salesAgentResponse: z.string().describe('The response from the sales agent.'),
+  salesAgentResponse: z.string().describe('The response from the sales agent. This might be an empty string if it is not the sales agent\'s turn.'),
   consumerAgentResponse: z
     .string()
-    .describe('The response from the consumer agent.'),
+    .describe('The response from the consumer agent. This might be an empty string if it is not the consumer agent\'s turn.'),
 });
 
 export type CustomizeRoleplayOutput = z.infer<typeof CustomizeRoleplayOutputSchema>;
@@ -55,6 +56,7 @@ async (input) => {
   // TODO: Implement fetching snippets from externalKnowledgeUrl using the query.
   // This is a placeholder; replace with actual implementation.
   console.log(`Fetching knowledge for query: ${input.query}`);
+  // In a real implementation, you would fetch and process the content from input.url
   return `PLACEHOLDER: Relevant knowledge for ${input.query} from external source.`
 });
 
@@ -67,25 +69,28 @@ const roleplayPrompt = ai.definePrompt({
   output: {
     schema: CustomizeRoleplayOutputSchema,
   },
-  system: `You must return a JSON object that adheres to the provided schema.`,
-  prompt: `You are simulating a conversation between a sales agent and a consumer agent.
+  system: `You are an expert conversation simulator. Your task is to generate the next turn in a roleplay conversation between a sales agent and a consumer agent based on their defined prompts and the conversation history.
 
+- Analyze the 'User Query' to understand whose turn it is and what the context is.
+- Generate a response for ONLY the agent whose turn it is. The other agent's response should be an empty string.
+- The response should be realistic, adhering to the agent's personality, goals, and communication style defined in their system prompt.
+- Ensure responses include tone indicators like *confident* or *skeptical* at the beginning.
+- If an agent decides the conversation is over (e.g., a meeting is booked), their response MUST include the word 'TERMINATE'.
+- You must return a JSON object that adheres to the provided schema.`,
+  prompt: `
 Sales Agent System Prompt:
 {{salesAgentPrompt}}
 
 Consumer Agent System Prompt:
 {{consumerAgentPrompt}}
 
-External Knowledge URL: {{externalKnowledgeUrl}}
+External Knowledge URL (if provided): {{externalKnowledgeUrl}}
 
-User Query: {{query}}
+Conversation Context / User Query: 
+{{query}}
 
-
-Based on the user query, each agent should respond in turn, incorporating relevant information from the external knowledge source when appropriate. Use the getRelevantKnowledge tool when the conversation requires more information, but do not overuse it. Make sure the getRelevantKnowledge tool inputs are detailed and of a high quality so that only the most important information is returned.
-
-Sales Agent Response:
-
-Consumer Agent Response:`,
+Generate the next response in the conversation.
+`,
 });
 
 const customizeRoleplayFlow = ai.defineFlow(
@@ -103,8 +108,8 @@ const customizeRoleplayFlow = ai.defineFlow(
     } = input;
 
     const {output} = await roleplayPrompt({
-      salesAgentPrompt: salesAgentPrompt || 'You are a sales agent.',
-      consumerAgentPrompt: consumerAgentPrompt || 'You are a consumer agent.',
+      salesAgentPrompt: salesAgentPrompt || 'You are a helpful sales agent.',
+      consumerAgentPrompt: consumerAgentPrompt || 'You are a skeptical customer.',
       externalKnowledgeUrl: externalKnowledgeUrl || '',
       query,
     });

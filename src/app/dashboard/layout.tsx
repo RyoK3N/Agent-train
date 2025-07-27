@@ -1,3 +1,4 @@
+
 import {
   SidebarProvider,
   Sidebar,
@@ -53,18 +54,10 @@ export default function DashboardLayout({
         <header className="flex items-center p-4 border-b sticky top-0 bg-background/95 backdrop-blur-sm z-10">
           <SidebarTrigger className="md:hidden" />
           <div className="ml-auto flex items-center gap-2">
-            <Button variant="ghost" size="icon">
-              <Bell className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon">
-              <Settings className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon">
-              <LifeBuoy className="h-5 w-5" />
-            </Button>
+            {/* Header buttons removed to move to page itself */}
           </div>
         </header>
-        <main className="p-4 sm:p-6 lg:p-8">
+        <main>
             {children}
         </main>
       </SidebarInset>
