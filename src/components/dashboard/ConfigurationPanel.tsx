@@ -129,7 +129,7 @@ export function ConfigurationPanel({ onSubmit, isLoading }: ConfigurationPanelPr
         <FormField
           control={form.control}
           name="consumerAgentPrompt"
-          render={={({ field }) => (
+          render={({ field }) => (
             <FormItem>
               <FormLabel>Consumer Agent Prompt</FormLabel>
               <FormControl>
