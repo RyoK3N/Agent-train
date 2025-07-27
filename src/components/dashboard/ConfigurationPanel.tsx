@@ -90,7 +90,7 @@ export function ConfigurationPanel({ onSubmit, isLoading }: ConfigurationPanelPr
       salesAgentPrompt: defaultSalesPrompt,
       consumerAgentPrompt: defaultConsumerPrompt,
       externalKnowledgeUrl: "",
-      query: "The sales agent will start by introducing themself and Cleverly's services. The consumer should respond with some initial skepticism.",
+      query: "The sales agent (human) will start the conversation. The AI consumer should wait for the user's first message and then respond.",
     },
   });
 
@@ -118,7 +118,7 @@ export function ConfigurationPanel({ onSubmit, isLoading }: ConfigurationPanelPr
           name="salesAgentPrompt"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Sales Agent Prompt</FormLabel>
+              <FormLabel>Sales Agent Prompt (for analysis)</FormLabel>
               <FormControl>
                 <Textarea className="min-h-[150px] font-mono text-xs" placeholder="Define the sales agent's personality and goals..." {...field} />
               </FormControl>

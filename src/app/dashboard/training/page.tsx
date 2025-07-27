@@ -8,10 +8,11 @@ import { PerformanceReview } from "@/components/training/PerformanceReview";
 import { customizeRoleplay } from "@/ai/flows/customize-roleplay-configuration";
 import { generateVoiceModulation } from "@/ai/flows/generate-voice-modulation";
 import { analyzePerformance, AnalyzePerformanceOutput } from "@/ai/flows/analyze-performance-flow";
+import { speechToText } from "@/ai/flows/speech-to-text-flow";
 import { useToast } from "@/hooks/use-toast";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Settings, Bot, User, Play, Pause, Loader2, Mic, Send, Redo } from "lucide-react";
+import { Settings, Bot, User, Play, Pause, Loader2, Mic, Send, Redo, CircleStop } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 
 export interface Message {
@@ -37,6 +38,10 @@ export default function TrainingPage() {
   const [analysis, setAnalysis] = useState<AnalyzePerformanceOutput | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [userTranscript, setUserTranscript] = useState("");
+
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   const processAndAddMessage = async (speaker: "consumer_agent" | "user", rawText: string, idPrefix: string, tone?: string) => {
     if (!rawText) return "";
@@ -71,16 +76,16 @@ export default function TrainingPage() {
     
     return cleanText;
   };
-  
-  const handleUserSubmit = async () => {
-      if (!userTranscript.trim() || !currentConfig) return;
+
+  const handleUserSubmit = async (text: string) => {
+      if (!text.trim() || !currentConfig) return;
 
       setIsLoading(true);
-      await processAndAddMessage("user", userTranscript, 'user');
+      await processAndAddMessage("user", text, 'user');
       setUserTranscript("");
 
       try {
-        const query = `The user (sales agent) said: "${userTranscript}". The conversation history is:\n${conversationHistory.current.join("\n")}\n\nIt is now the Consumer Agent's turn to respond.`;
+        const query = `The user (sales agent) said: "${text}". The conversation history is:\n${conversationHistory.current.join("\n")}\n\nIt is now the Consumer Agent's turn to respond.`;
         const result = await customizeRoleplay({ ...currentConfig, query });
 
         if (result.consumerAgentResponse) {
@@ -92,7 +97,6 @@ export default function TrainingPage() {
              endSession();
           }
         } else {
-            // If consumer doesn't respond, maybe the conversation is over or stalled.
             toast({ title: "Conversation Update", description: "The consumer agent did not provide a response. You can end the session for analysis."})
         }
       } catch (error) {
@@ -103,42 +107,79 @@ export default function TrainingPage() {
       }
   };
 
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorderRef.current.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = async () => {
+          const base64data = reader.result as string;
+          setIsSTTLoading(true);
+          try {
+            const result = await speechToText({ audioDataUri: base64data });
+            if (result.transcript) {
+              handleUserSubmit(result.transcript);
+            } else {
+              toast({ title: "Transcription Failed", description: "Could not convert audio to text. Please try again or type your response.", variant: "destructive"});
+            }
+          } catch(e) {
+             toast({ title: "Transcription Error", description: "Something went wrong during transcription.", variant: "destructive"});
+          } finally {
+            setIsSTTLoading(false);
+          }
+        };
+      };
+
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error("Error accessing microphone:", error);
+      toast({
+        title: "Microphone Access Denied",
+        description: "Please enable microphone permissions in your browser settings.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+  
+  const handleToggleRecording = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  }
+
   const handleStartSession = (values: ConfigurationFormValues) => {
     setIsConfigOpen(false);
     setSessionActive(true);
     setCurrentConfig(values);
-    setIsLoading(true);
+    setIsLoading(false); // Don't start loading until user speaks/types
     setMessages([]);
     conversationHistory.current = [];
     setAnalysis(null);
-
-    // Initial message from AI to kick things off
-    const startConversation = async () => {
-        try {
-            const result = await customizeRoleplay({ ...values, query: values.query });
-            let initialText = result.consumerAgentResponse || result.salesAgentResponse; // Prefer consumer response to start
-            if (initialText) {
-                const toneMatch = initialText.match(tonePattern);
-                const tone = toneMatch ? toneMatch[1].toLowerCase().trim() : undefined;
-                await processAndAddMessage("consumer_agent", initialText, 'consumer', tone);
-            } else {
-                toast({ title: "Simulation Start Failed", description: "The AI could not generate an opening line.", variant: "destructive" });
-                 setSessionActive(false);
-            }
-        } catch (error) {
-            console.error("Simulation start failed:", error);
-            toast({ title: "Simulation Start Failed", description: "Could not start the conversation.", variant: "destructive" });
-            setSessionActive(false);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    startConversation();
   };
   
   const endSession = async () => {
     if (!currentConfig || conversationHistory.current.length === 0) {
         toast({ title: "Analysis Skipped", description: "Cannot analyze an empty session.", variant: "destructive"});
+        setSessionActive(false);
         return;
     };
     setSessionActive(false);
@@ -163,11 +204,18 @@ export default function TrainingPage() {
     conversationHistory.current = [];
     setSessionActive(false);
     setIsLoading(false);
+    setIsSTTLoading(false);
+    setIsRecording(false);
+    if(mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+        mediaRecorderRef.current.stop();
+    }
     setAnalysis(null);
     setCurrentConfig(null);
     setIsConfigOpen(true);
     setUserTranscript("");
   }
+
+  const isInputDisabled = isLoading || isSTTLoading || isRecording;
 
   return (
     <div className="h-screen flex flex-col relative">
@@ -187,14 +235,14 @@ export default function TrainingPage() {
                 <SheetTitle className="font-headline text-2xl">Training Configuration</SheetTitle>
              </SheetHeader>
              <div className="py-4 h-[calc(100vh-80px)] overflow-y-auto pr-6">
-                <ConfigurationPanel onSubmit={handleStartSession} isLoading={isLoading} />
+                <ConfigurationPanel onSubmit={handleStartSession} isLoading={isLoading || isSTTLoading} />
              </div>
           </SheetContent>
         </Sheet>
       </div>
 
       <div className="flex-grow flex flex-col items-center justify-center p-4">
-        <ConversationDisplay messages={messages} isLoading={isLoading && messages.length > 0} />
+        <ConversationDisplay messages={messages} isLoading={(isLoading || isSTTLoading) && messages.length > 0} />
         {analysis && (
             <div className="w-full max-w-4xl mt-4">
                 <PerformanceReview analysis={analysis} isLoading={isAnalyzing}/>
@@ -206,23 +254,37 @@ export default function TrainingPage() {
           <div className="w-full max-w-4xl mx-auto">
             {sessionActive ? (
                 <div className="flex items-end gap-2">
-                    <Button variant="outline" size="icon" className="h-14 w-14 rounded-full shadow-lg flex-shrink-0" disabled={isSTTLoading}>
-                        <Mic className="h-7 w-7"/>
+                    <Button
+                      variant={isRecording ? "destructive" : "outline"}
+                      size="icon"
+                      className="h-14 w-14 rounded-full shadow-lg flex-shrink-0"
+                      onClick={handleToggleRecording}
+                      disabled={isLoading || isSTTLoading}
+                    >
+                        {isSTTLoading ? (
+                            <Loader2 className="animate-spin h-7 w-7" />
+                        ) : isRecording ? (
+                            <CircleStop className="h-7 w-7" />
+                        ) : (
+                            <Mic className="h-7 w-7" />
+                        )}
+                        <span className="sr-only">{isRecording ? "Stop Recording" : "Start Recording"}</span>
                     </Button>
                      <Textarea
                         value={userTranscript}
                         onChange={(e) => setUserTranscript(e.target.value)}
-                        placeholder="For now, type your response here... (Speech-to-text coming soon!)"
+                        placeholder={isRecording ? "Recording... speak now!" : "Type your response or use the mic..."}
                         className="text-lg min-h-[56px] max-h-48 resize-y"
                         rows={1}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
-                                handleUserSubmit();
+                                handleUserSubmit(userTranscript);
                             }
                         }}
+                        disabled={isInputDisabled}
                     />
-                    <Button onClick={handleUserSubmit} size="icon" className="h-14 w-14 rounded-full shadow-lg flex-shrink-0" disabled={isLoading || !userTranscript.trim()}>
+                    <Button onClick={() => handleUserSubmit(userTranscript)} size="icon" className="h-14 w-14 rounded-full shadow-lg flex-shrink-0" disabled={isInputDisabled || !userTranscript.trim()}>
                        {isLoading ? <Loader2 className="animate-spin h-7 w-7"/> : <Send className="h-7 w-7"/>}
                     </Button>
                     <Button variant="destructive" className="h-14 rounded-full shadow-lg" onClick={endSession}>
