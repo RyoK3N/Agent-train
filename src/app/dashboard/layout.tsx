@@ -7,12 +7,18 @@ import {
   SidebarInset,
   SidebarTrigger,
   SidebarFooter,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarGroup,
+  SidebarGroupLabel,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/icons/Logo";
-import { Bell, LifeBuoy, LogOut, Settings } from "lucide-react";
+import { LogOut, MessageSquare, History } from "lucide-react";
 import Link from 'next/link';
+import { Separator } from "@/components/ui/separator";
 
 export default function DashboardLayout({
   children,
@@ -29,8 +35,24 @@ export default function DashboardLayout({
             <SidebarTrigger className="ml-auto"/>
           </div>
         </SidebarHeader>
-        <SidebarContent className="flex-grow p-2">
-          {/* Content inside sidebar, if any */}
+        <SidebarContent className="p-0">
+            <SidebarMenu>
+                <SidebarMenuItem>
+                    <SidebarMenuButton href="/dashboard" isActive>
+                        <MessageSquare />
+                        New Simulation
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            </SidebarMenu>
+            <SidebarGroup className="mt-4">
+              <SidebarGroupLabel className="flex items-center gap-2">
+                <History />
+                Recent Sessions
+              </SidebarGroupLabel>
+              <div className="p-2 text-sm text-muted-foreground">
+                Session history will appear here.
+              </div>
+            </SidebarGroup>
         </SidebarContent>
         <SidebarFooter className="p-4 border-t">
            <div className="flex items-center gap-3">
@@ -51,12 +73,6 @@ export default function DashboardLayout({
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="flex items-center p-4 border-b sticky top-0 bg-background/95 backdrop-blur-sm z-10">
-          <SidebarTrigger className="md:hidden" />
-          <div className="ml-auto flex items-center gap-2">
-            {/* Header buttons removed to move to page itself */}
-          </div>
-        </header>
         <main>
             {children}
         </main>

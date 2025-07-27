@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { ConfigurationPanel, type ConfigurationFormValues } from "@/components/dashboard/ConfigurationPanel";
 import { ConversationDisplay } from "@/components/dashboard/ConversationDisplay";
 import { Statistics } from "@/components/dashboard/Statistics";
-import { customizeRoleplay, CustomizeRoleplayInput } from "@/ai/flows/customize-roleplay-configuration";
+import { customizeRoleplay } from "@/ai/flows/customize-roleplay-configuration";
 import { generateVoiceModulation } from "@/ai/flows/generate-voice-modulation";
 import { useToast } from "@/hooks/use-toast";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -46,21 +46,21 @@ export default function DashboardPage() {
   const conversationHistory = useRef<string[]>([]);
   const simulationStopped = useRef(false);
 
-  // Close sheet states
   const [isConfigOpen, setIsConfigOpen] = useState(false);
 
   useEffect(() => {
-    if (startTime) {
-      const interval = setInterval(() => {
-        if (!simulationStopped.current) {
-          setStats(prev => ({ ...prev, conversationLength: (Date.now() - startTime) / 1000 }));
-        }
+    let interval: NodeJS.Timeout;
+    if (startTime && !simulationStopped.current) {
+      interval = setInterval(() => {
+        setStats(prev => ({ ...prev, conversationLength: (Date.now() - startTime) / 1000 }));
       }, 1000);
-      return () => clearInterval(interval);
     }
+    return () => clearInterval(interval);
   }, [startTime]);
 
   const processAndAddMessage = async (speaker: "salesperson_agent" | "consumer_agent", rawText: string) => {
+    if (!rawText) return "";
+    
     const messageId = `${speaker}-${Date.now()}`;
     const toneMatch = rawText.match(tonePattern);
     const tone = toneMatch ? toneMatch[1].toLowerCase().trim() : undefined;
@@ -74,7 +74,7 @@ export default function DashboardPage() {
       isGeneratingAudio: true,
     };
     setMessages(prev => [...prev, newMessage]);
-    conversationHistory.current.push(`${speaker}: ${cleanText}`);
+    conversationHistory.current.push(`${speaker === 'salesperson_agent' ? 'Sales Agent' : 'Consumer Agent'}: ${cleanText}`);
 
     try {
       const audioResult = await generateVoiceModulation({ text: cleanText, speaker, tone });
@@ -98,17 +98,28 @@ export default function DashboardPage() {
   };
 
   const runConversationTurn = async (values: ConfigurationFormValues, currentQuery: string) => {
+    if (simulationStopped.current) {
+      setIsLoading(false);
+      setIsContinuing(false);
+      return;
+    }
+
     setIsContinuing(true);
+    
     try {
       const result = await customizeRoleplay({ ...values, query: currentQuery });
-      let salesResponseText = "";
-      let consumerResponseText = "";
+      let nextTurnSpeaker: "salesperson_agent" | "consumer_agent" | null = null;
 
+      let salesResponseText = "";
       if (result.salesAgentResponse) {
         salesResponseText = await processAndAddMessage("salesperson_agent", result.salesAgentResponse);
+        nextTurnSpeaker = "consumer_agent";
       }
+      
+      let consumerResponseText = "";
       if (result.consumerAgentResponse) {
         consumerResponseText = await processAndAddMessage("consumer_agent", result.consumerAgentResponse);
+        nextTurnSpeaker = "salesperson_agent";
       }
 
       const meetingBooked = salesResponseText.includes("TERMINATE") || consumerResponseText.includes("TERMINATE");
@@ -121,19 +132,22 @@ export default function DashboardPage() {
 
       if (meetingBooked) {
         simulationStopped.current = true;
+        if(startTime) {
+           setStats(prev => ({ ...prev, conversationLength: (Date.now() - startTime) / 1000 }));
+        }
         setIsLoading(false);
         setIsContinuing(false);
         return;
       }
-
-      // Continue the conversation
-      const nextQuery = `Continue the conversation based on the last response. The conversation history is: \n${conversationHistory.current.join('\n')}\n\n The last response was from the consumer agent. Now it is the sales agent's turn.`;
       
-      // Introduce a small delay to make the conversation feel more natural
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      if (!simulationStopped.current) {
-        await runConversationTurn(values, nextQuery);
+      if (!simulationStopped.current && nextTurnSpeaker) {
+         const nextQuery = `Continue the conversation. The history is:\n${conversationHistory.current.join("\n")}\n\nIt is now the ${nextTurnSpeaker === 'salesperson_agent' ? 'Sales Agent' : 'Consumer Agent'}'s turn.`;
+         await runConversationTurn(values, nextQuery);
+      } else {
+        setIsLoading(false);
+        setIsContinuing(false);
       }
 
     } catch (error) {
@@ -165,17 +179,22 @@ export default function DashboardPage() {
 
     await runConversationTurn(values, values.query);
   };
+  
+  const handleStopSimulation = () => {
+    simulationStopped.current = true;
+    if(startTime) {
+       setStats(prev => ({ ...prev, conversationLength: (Date.now() - startTime) / 1000 }));
+    }
+    setIsLoading(false);
+    setIsContinuing(false);
+  }
 
   return (
-    <div className="h-[calc(100vh-theme(spacing.16))] flex flex-col">
-      <div className="flex-grow flex items-center justify-center p-4">
-        <ConversationDisplay messages={messages} isLoading={isLoading || isContinuing} />
-      </div>
-
-      <div className="absolute top-4 right-4 flex gap-2">
+    <div className="h-screen flex flex-col relative">
+       <div className="absolute top-4 right-4 z-20 flex gap-2">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="shadow-md">
+            <Button variant="outline" size="icon" className="shadow-md rounded-full">
               <BarChart3 className="h-5 w-5" />
             </Button>
           </SheetTrigger>
@@ -191,7 +210,7 @@ export default function DashboardPage() {
         
         <Sheet open={isConfigOpen} onOpenChange={setIsConfigOpen}>
           <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="shadow-md">
+            <Button variant="outline" size="icon" className="shadow-md rounded-full">
               <Settings className="h-5 w-5" />
             </Button>
           </SheetTrigger>
@@ -199,12 +218,24 @@ export default function DashboardPage() {
              <SheetHeader>
                 <SheetTitle className="font-headline text-2xl">Roleplay Configuration</SheetTitle>
              </SheetHeader>
-             <div className="py-4 h-full overflow-y-auto pr-6">
-                <ConfigurationPanel onSubmit={handleStartSimulation} isLoading={isLoading} />
+             <div className="py-4 h-[calc(100vh-80px)] overflow-y-auto pr-6">
+                <ConfigurationPanel onSubmit={handleStartSimulation} isLoading={isLoading || isContinuing} />
              </div>
           </SheetContent>
         </Sheet>
       </div>
+
+      <div className="flex-grow flex items-center justify-center p-4">
+        <ConversationDisplay messages={messages} isLoading={isLoading || isContinuing} />
+      </div>
+       {(isLoading || isContinuing) && (
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
+            <Button variant="destructive" onClick={handleStopSimulation} className="rounded-full shadow-lg">
+                <Pause className="mr-2 h-4 w-4"/>
+                Stop Simulation
+            </Button>
+        </div>
+      )}
     </div>
   );
 }
