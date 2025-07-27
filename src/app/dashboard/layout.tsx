@@ -16,7 +16,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/icons/Logo";
-import { LogOut, MessageSquare, History } from "lucide-react";
+import { LogOut, MessageSquare, History, MicVocal } from "lucide-react";
 import Link from 'next/link';
 import { Separator } from "@/components/ui/separator";
 
@@ -38,9 +38,15 @@ export default function DashboardLayout({
         <SidebarContent className="p-0">
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton href="/dashboard" isActive>
+                    <SidebarMenuButton href="/dashboard">
                         <MessageSquare />
-                        New Simulation
+                        AI vs AI Sim
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
+                    <SidebarMenuButton href="/dashboard/training">
+                        <MicVocal />
+                        Live Training
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>

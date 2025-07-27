@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -16,7 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Rocket } from "lucide-react";
+import { Loader2, Rocket } from "lucide-react";
 
 export const formSchema = z.object({
   salesAgentPrompt: z.string().min(10, "Prompt is too short."),
@@ -89,7 +90,7 @@ export function ConfigurationPanel({ onSubmit, isLoading }: ConfigurationPanelPr
       salesAgentPrompt: defaultSalesPrompt,
       consumerAgentPrompt: defaultConsumerPrompt,
       externalKnowledgeUrl: "",
-      query: "Salesperson_agent, please begin your professional pitch to consumer_agent about Cleverly's LinkedIn lead generation services.",
+      query: "The sales agent will start by introducing themself and Cleverly's services. The consumer should respond with some initial skepticism.",
     },
   });
 
@@ -101,7 +102,7 @@ export function ConfigurationPanel({ onSubmit, isLoading }: ConfigurationPanelPr
           name="query"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Simulation Task</FormLabel>
+              <FormLabel>Simulation/Training Task</FormLabel>
               <FormControl>
                 <Textarea placeholder="Enter the initial task for the agents..." {...field} rows={3} />
               </FormControl>
@@ -128,7 +129,7 @@ export function ConfigurationPanel({ onSubmit, isLoading }: ConfigurationPanelPr
         <FormField
           control={form.control}
           name="consumerAgentPrompt"
-          render={({ field }) => (
+          render={={({ field }) => (
             <FormItem>
               <FormLabel>Consumer Agent Prompt</FormLabel>
               <FormControl>
@@ -156,11 +157,14 @@ export function ConfigurationPanel({ onSubmit, isLoading }: ConfigurationPanelPr
         />
         <Button type="submit" className="w-full" disabled={isLoading} size="lg">
           {isLoading ? (
-            "Simulation in Progress..."
+            <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Starting Session...
+            </>
           ) : (
             <>
               <Rocket className="mr-2 h-5 w-5" />
-              Start Simulation
+              Start Session
             </>
           )}
         </Button>

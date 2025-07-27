@@ -15,6 +15,37 @@ interface ConversationDisplayProps {
   isLoading: boolean;
 }
 
+const SpeakerAvatar = ({ speaker }: { speaker: Message["speaker"] }) => {
+    if (speaker === "consumer_agent") {
+        return (
+            <Avatar className="border-2 shadow-lg">
+                <AvatarFallback><User size={20} /></AvatarFallback>
+            </Avatar>
+        );
+    }
+
+    if (speaker === 'user') {
+         return (
+             <Avatar className="border-2 border-blue-500 shadow-lg">
+                <AvatarFallback className="bg-blue-500 text-white"><Mic size={20} /></AvatarFallback>
+            </Avatar>
+        )
+    }
+
+    // salesperson_agent
+    return (
+        <Avatar className="border-2 border-primary shadow-lg">
+            <AvatarFallback className="bg-primary text-primary-foreground"><Bot size={20} /></AvatarFallback>
+        </Avatar>
+    );
+};
+
+const SpeakerName = ({ speaker }: { speaker: Message["speaker"] }) => {
+     if (speaker === "consumer_agent") return <><User size={16}/> Consumer AI</>;
+     if (speaker === 'user') return <><Mic size={16}/> You (Sales Agent)</>
+     return <><Bot size={16}/> Sales AI</>;
+}
+
 export function ConversationDisplay({ messages, isLoading }: ConversationDisplayProps) {
   const [activeAudio, setActiveAudio] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -56,6 +87,8 @@ export function ConversationDisplay({ messages, isLoading }: ConversationDisplay
     visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
   };
 
+  const isHumanMessage = (speaker: Message['speaker']) => speaker === 'user';
+
   return (
     <div className="w-full max-w-4xl mx-auto h-full flex flex-col">
         <ScrollArea className="h-[calc(80vh)] w-full p-4" ref={scrollAreaRef}>
@@ -70,24 +103,22 @@ export function ConversationDisplay({ messages, isLoading }: ConversationDisplay
                 exit="hidden"
                 className={cn(
                   "flex items-start gap-4 my-6",
-                  message.speaker === "salesperson_agent" ? "justify-start" : "justify-end"
+                   isHumanMessage(message.speaker) ? "justify-end" : "justify-start"
                 )}
               >
-                {message.speaker === "salesperson_agent" && (
-                  <Avatar className="border-2 border-primary shadow-lg">
-                    <AvatarFallback className="bg-primary text-primary-foreground"><Bot size={20} /></AvatarFallback>
-                  </Avatar>
-                )}
+                {!isHumanMessage(message.speaker) && <SpeakerAvatar speaker={message.speaker} />}
                 <div
                   className={cn(
                     "rounded-xl p-4 max-w-xl shadow-lg transition-all duration-300",
                     message.speaker === "salesperson_agent"
                       ? "bg-gradient-to-br from-primary to-blue-600 text-primary-foreground rounded-br-none"
+                      : isHumanMessage(message.speaker)
+                      ? "bg-gradient-to-br from-blue-500 to-cyan-500 text-primary-foreground rounded-bl-none"
                       : "bg-card text-card-foreground border rounded-bl-none"
                   )}
                 >
                   <p className="font-bold mb-2 flex items-center gap-2 text-sm">
-                    {message.speaker === "salesperson_agent" ? <><Mic size={16}/> Sales Agent</> : <><User size={16}/> Consumer Agent</>}
+                    <SpeakerName speaker={message.speaker} />
                     {message.tone && <span className="text-xs font-normal opacity-80 bg-black/10 px-2 py-0.5 rounded-full capitalize">{message.tone}</span>}
                   </p>
                   <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.text}</p>
@@ -109,25 +140,19 @@ export function ConversationDisplay({ messages, isLoading }: ConversationDisplay
                      </div>
                    )}
                 </div>
-                {message.speaker === "consumer_agent" && (
-                   <Avatar className="border-2 shadow-lg">
-                     <AvatarFallback><User size={20} /></AvatarFallback>
-                  </Avatar>
-                )}
+                 {isHumanMessage(message.speaker) && <SpeakerAvatar speaker={message.speaker} />}
               </motion.div>
             ))}
 
-            {isLoading && (
+            {isLoading && !messages.some(m => m.speaker === 'user' && m.text) && (
               <motion.div
                 layout
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="flex items-start gap-4 my-6 justify-start"
               >
-                 <Avatar className="border-2 border-primary shadow-lg">
-                    <AvatarFallback className="bg-primary text-primary-foreground"><Bot size={20} /></AvatarFallback>
-                  </Avatar>
-                 <div className="rounded-xl p-4 max-w-lg shadow-lg bg-gradient-to-br from-primary to-blue-600 text-primary-foreground rounded-br-none">
+                 <SpeakerAvatar speaker="consumer_agent" />
+                 <div className="rounded-xl p-4 max-w-lg shadow-lg bg-card text-card-foreground border">
                     <div className="flex items-center">
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       <span>Thinking...</span>
@@ -145,7 +170,7 @@ export function ConversationDisplay({ messages, isLoading }: ConversationDisplay
                   </motion.div>
                   <h3 className="text-2xl font-bold font-headline mb-2">Vocalis AI Simulation</h3>
                   <p className="text-md max-w-md">
-                      Welcome! Click the <Settings size={16} className="inline-block mx-1" /> icon to configure your agents and start a new sales roleplay simulation.
+                      Welcome! Click the <Settings size={16} className="inline-block mx-1" /> icon to configure your agents and start a new session.
                   </p>
               </div>
             )}
