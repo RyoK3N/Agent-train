@@ -1,29 +1,26 @@
-# Stage 1: Install dependencies
+# ---------- deps ----------
 FROM node:20-alpine AS deps
 WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
 COPY package.json package-lock.json* ./
-RUN npm install
+RUN npm ci --omit=dev          # faster & smaller
 
-# Stage 2: Build the application
+# ---------- build ----------
 FROM node:20-alpine AS builder
 WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# Set CHOKIDAR_USEPOLLING to true to avoid issues with file watching in Docker
-ENV CHOKIDAR_USEPOLLING=true
-RUN npm run build
+RUN npm run build && npm prune --production
 
-# Stage 3: Production
+# ---------- runtime ----------
 FROM node:20-alpine AS runner
 WORKDIR /app
-
 ENV NODE_ENV=production
-
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
+ENV PORT=8080                  # Cloud Run rewrites to this automatically
+COPY --from=builder /app/public   ./public
+COPY --from=builder /app/.next    ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
-
-EXPOSE 3000
-
-CMD ["npm", "start"]
+EXPOSE 8080
+CMD ["npm","start"]            # "start": "next start -p $PORT"
