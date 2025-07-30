@@ -1,0 +1,6 @@
+node_modules
+.next
+Dockerfile.web
+Dockerfile.genkit
+docker-compose.yml
+readme.md
