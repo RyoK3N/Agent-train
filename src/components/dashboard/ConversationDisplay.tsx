@@ -9,7 +9,7 @@ import type { Message } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { SpeakerAvatar } from './SpeakerAvatar';
 import { SpeakerName } from './SpeakerName';
-
+import { Button } from "@/components/ui/button";
 interface ConversationDisplayProps {
   messages: Message[];
   isLoading: boolean;
