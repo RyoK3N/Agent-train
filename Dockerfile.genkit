@@ -1,0 +1,12 @@
+FROM node:20-alpine AS genkit-deps
+WORKDIR /app
+ENV NODE_ENV=production
+COPY package.json package-lock.json* ./
+RUN npm ci --omit=dev
+
+FROM node:20-alpine AS genkit-runtime
+WORKDIR /app
+COPY --from=genkit-deps /app/node_modules ./node_modules
+COPY . .
+EXPOSE 4000
+CMD ["npx", "genkit", "start", "--", "tsx", "src/ai/dev.ts"]
